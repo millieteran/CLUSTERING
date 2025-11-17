@@ -1,0 +1,250 @@
+---
+title: "Trabajo Práctico Clustering"
+authors:
+  - name: "Miguel Garrone"
+    affiliations: "Universidad Austral"
+  - name: "Lucía Tamplin"
+  - name: "Milagros Terán"
+  - name: "Martín Ceriotti"
+
+format:
+  html:
+    toc: TRUE
+    lang: es
+    embed-resources: true
+
+editor: visual
+---
+
+```{r}
+#| label: lecturadatos
+#| message: false
+#| warning: false
+#| include: false
+#| paged-print: false
+library(dplyr)
+library(factoextra)
+library(knitr)
+library(psych)
+library(cowplot)
+library(ggdendro)
+library(readxl)
+library(janitor)
+library(proxy)
+library(ade4)
+nacimientos <- read_excel("nacimientos.xls")
+```
+
+Para la descripción del conjunto de datos, no utilizamos SUMMARY debido a que las variables son dicotómicas. Optamos por analizar cada una de las variables con la función TABYL a través de tablas de frecuencias.
+
+```{r}
+#| label: descripcion
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$eg_menor_30)
+```
+
+## Descripción del conjunto de datos
+
+### Edad gestacional menor a 30 semanas
+
+Para la variable que considera la edad gestacional menor a 30 semanas, se observa que el 56,86% de los nacimientos tienen edad gestacional menor a 30 semanas El 43,23% restante tiene edad gestacional mayor a 30 semanas
+
+```{r}
+#| label: descripcion1
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$centro)
+```
+
+### Centro
+
+Para la variable que considera el centro donde se realizó el parto, se observa que el 58,82% de los nacimientos tuvieron lugar en el centro A, el 9,81% tuvo lugar en el centro B y el restante 31,37% en el centro C.
+
+```{r}
+#| label: descripcion2
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$ematerna_mayor_40)
+```
+
+### Edad materna mayor a 40 años
+
+Para la variable que considera la edad de la madre, se observa que el 82,35% de las madres tenían al momento del parto menos de 40 años. El restante 17,65%, eran mayores de 40 años.
+
+```{r}
+#| label: descripcion3
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$hta)
+```
+
+### Hipertensión arterial
+
+Para la variable que considera la hipertensión arterial de la madre, se observa que el 78,43% de las madres no presentaban hipertensión arterial al momento del parto. El restante 21,57%, sí tenía hipertensión arterial.
+
+```{r}
+#| label: descripcion4
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$sexo_masculino)
+```
+
+### Sexo Masculino
+
+Para la variable que considera el género del bebé, se observa que el 59,98% de los recién nacidos eran de género femenino, y el restante 49,02% de género masculino.
+
+```{r}
+#| label: descripcion5
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$cesarea)
+```
+
+### Cesárea
+
+Para la variable que considera si el parto fue realizado por cesárea o no, se observa que el 96,08% de los partos se realizaron por cesárea, y el restante 3,92% fueron partos naturales.
+
+```{r}
+#| label: descripcion6
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$corti)
+
+```
+
+### Corticoides
+
+Para la variable que considera si se aplicaron corticoides durante el parto o no, se observa que en un 82,35% de los partos sí se utilizó, y en el restante 17,65% no se aplicaron.
+
+```{r}
+#| label: descripcion7
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+tabyl(nacimientos$peso_menor_1000)
+```
+
+### Peso menor a 1000g
+
+Para la variable que considera si el recién nacido pesó menos que 1000 gramos, se observa que un 88,24% de los recién nacidos pesaron más de 1000 gramos, y el restante 11,76% pesó menos.
+
+## Agrupamiento jerárquico sobre variables binarias
+
+### Dendograma
+
+```{r}
+#| label: agrupamiento
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+
+# Se asignó el 'id' de los nacimientos como nombre de las filas
+rownames(nacimientos) <- nacimientos$id
+#names(nacimientos)
+
+# Se seleccionaron solo las variables dicotómicas
+vars_to_cluster <- c(
+  "eg_menor_30", "ematerna_mayor_40","hta","sexo_masculino","corti","cesarea","peso_menor_1000"  
+)
+
+df_to_cluster <- nacimientos %>%
+  dplyr::select(all_of(vars_to_cluster))
+
+
+#No se estandarizaron las variables porque son dicotómicas.
+
+# Se calcularon las distancias
+d   <- dist(df_to_cluster, method = "binary") #no considera 00
+
+# Se realizó el agrupamiento jerárquico. El método de Ward, que busca minimizar la varianza dentro de los grupos.
+
+fit <- hclust(d, method = "ward.D")
+
+# Se graficó el dendograma
+plot(fit)
+
+```
+## Cálculo del número óptimo de clusters
+
+```{r}
+
+# Indice Silhouette  ---
+fviz_nbclust(df_to_cluster, kmeans, method = "silhouette") +
+  labs(title    = "Número óptimo de clusters a considerar",
+       subtitle = "Indice Silhouette")
+
+# Se identifican los distintos clusters elegidos
+rect.hclust(fit, k = 4, border = "red")
+groups <- cutree(fit, k = 4)
+df_to_cluster         <- data.frame(df_to_cluster)
+df_to_cluster$cluster <- groups # Guarda los cluster en conjunto de datos estandarizdo que se utilizó para agrupar
+nacimientos$cluster            <- groups # Guarda los cluster en conjunto de datos original
+
+```
+A partir del gráfico del índice de Silhouette se observa que la cantidad óptima de clusters sería 10, pero en este caso, al haber 51 observaciones en total, quedarían muy pocas en cada cluster. Es por esto, y porque se observa un "codo" en el valor 4, que se decidió utilizar esa cantidad de clusters.
+
+## Descripción de las características de los grupos considerados
+
+Se decidió realizar esta discripción a través del uso de tablas de frecuencias dado que las variables son dicotómicas. 
+```{r}
+# Agregar columna de clúster al dataframe
+df_con_grupo <- df_to_cluster
+df_con_grupo$cluster <- groups
+
+# Calcular proporciones por variable dentro de cada clúster
+tabla_porcentajes <- aggregate(. ~ cluster, data = df_con_grupo, FUN = mean)
+
+# Convertir a porcentaje
+tabla_porcentajes[,-1] <- round(tabla_porcentajes[,-1] * 100, 1)
+
+# Ver la tabla
+print(tabla_porcentajes)
+```
+A continuación se realiza una breve descripción de la tabla:
+
+Cluster 1: se observa que la mayoría de los recién nacidos tienen edad gestacional menor a 30 semanas. Más de la mitad de las mujeres eran menores a 40 años. La mayoría de los recién nacidos fueron de género femenino. Todos los partos fueron por cesárea. El 75% de los recién nacidos pesaron más que 1kg. La mayoría de las mujeres recibieron corticoides durante el parto.  
+
+Cluster 2: Todos los recién nacidos fueron de género femenino, todas las madres recibieron corticoides en el parto y fueron realizados por cesárea. Además, ninguna de las madres presentaba hipertensión arterial, ni eran mayores a 40 años. Ningún recién nacido tuvo edad gestacional menor a 30 semanas. 
+
+Cluster 3: Todos los recién nacidos tuvieron edad gestacional menor a 30 semanas. Además, todos fueron de género masculino. Todas las madres recibieron corticoides y la mayoría tuvo cesarea. La mayoría de los recién nacidos pesaron mas de 1kg. Ninguna madre tenía más de 40 años al momento del parto, ni presentaba hipertensión arterial.
+
+Cluster 4: Ningun recién nacido tuvo edad gestacional menor a 30 semanas. La mayoría de las madres eran menores a 40 años. La mayoría de los recién nacidos eran de sexo masculino. Todos los partos fueron por cesárea, y la mayoría de las mujeres fueron administradas con corticoides. Además, la mayoría de los recién nacidos pesaron mas de 1kg.
+
+
+## Relación entre la distribución de los nacimientos de los centros (‘A’, ‘B’ y ‘C’) y los distintos clusters
+```{r}
+
+table(nacimientos$cluster, nacimientos$centro)
+#   A B C
+# 1 8 2 9
+# 2 8 1 0
+# 3 5 1 5
+# 4 9 1 2
+
+```
+Para el cluster 1, se observa que la mayoría de los nacimientos fueron realizados en los centros A y C. 
+En el cluster 2, se observa que la mayoría de los nacimientos fueron realizados en el centro A.
+Para el cluster 3, se realizaron nacimientos en igual medida en centros A y C. 
+Por último, en el cluster 4, la mayoría de los nacimientos se realizaron en el centro A. 
+Se observa que el centro B es en el que se realizaron la menor cantidad de nacimientos. Y el cento A, en el que más hubo.
+
+## Relación entre la distribución de los nacimientos de los centros (‘A’, ‘B’ y ‘C’) y los distintos clusters
+
+
