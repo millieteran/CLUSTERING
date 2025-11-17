@@ -32,6 +32,7 @@ library(readxl)
 library(janitor)
 library(proxy)
 library(ade4)
+
 nacimientos <- read_excel("nacimientos.xls")
 ```
 
@@ -179,11 +180,17 @@ fit <- hclust(d, method = "ward.D")
 
 # Se graficó el dendograma
 plot(fit)
-
+rect.hclust(fit, k = 4, border = "red")
 ```
+
 ## Cálculo del número óptimo de clusters
 
 ```{r}
+#| label: silhouette
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
 
 # Indice Silhouette  ---
 fviz_nbclust(df_to_cluster, kmeans, method = "silhouette") +
@@ -191,19 +198,26 @@ fviz_nbclust(df_to_cluster, kmeans, method = "silhouette") +
        subtitle = "Indice Silhouette")
 
 # Se identifican los distintos clusters elegidos
-rect.hclust(fit, k = 4, border = "red")
 groups <- cutree(fit, k = 4)
 df_to_cluster         <- data.frame(df_to_cluster)
 df_to_cluster$cluster <- groups # Guarda los cluster en conjunto de datos estandarizdo que se utilizó para agrupar
 nacimientos$cluster            <- groups # Guarda los cluster en conjunto de datos original
 
 ```
+
 A partir del gráfico del índice de Silhouette se observa que la cantidad óptima de clusters sería 10, pero en este caso, al haber 51 observaciones en total, quedarían muy pocas en cada cluster. Es por esto, y porque se observa un "codo" en el valor 4, que se decidió utilizar esa cantidad de clusters.
 
 ## Descripción de las características de los grupos considerados
 
-Se decidió realizar esta discripción a través del uso de tablas de frecuencias dado que las variables son dicotómicas. 
+Se decidió realizar esta discripción a través del uso de tablas de frecuencias dado que las variables son dicotómicas.
+
 ```{r}
+#| label: tabla cluster
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+
 # Agregar columna de clúster al dataframe
 df_con_grupo <- df_to_cluster
 df_con_grupo$cluster <- groups
@@ -217,34 +231,142 @@ tabla_porcentajes[,-1] <- round(tabla_porcentajes[,-1] * 100, 1)
 # Ver la tabla
 print(tabla_porcentajes)
 ```
+
 A continuación se realiza una breve descripción de la tabla:
 
-Cluster 1: se observa que la mayoría de los recién nacidos tienen edad gestacional menor a 30 semanas. Más de la mitad de las mujeres eran menores a 40 años. La mayoría de los recién nacidos fueron de género femenino. Todos los partos fueron por cesárea. El 75% de los recién nacidos pesaron más que 1kg. La mayoría de las mujeres recibieron corticoides durante el parto.  
+Cluster 1: se observa que la mayoría de los recién nacidos tienen edad gestacional menor a 30 semanas. Más de la mitad de las mujeres eran menores a 40 años. La mayoría de los recién nacidos fueron de género femenino. Todos los partos fueron por cesárea. El 75% de los recién nacidos pesaron más que 1kg. La mayoría de las mujeres recibieron corticoides durante el parto.
 
-Cluster 2: Todos los recién nacidos fueron de género femenino, todas las madres recibieron corticoides en el parto y fueron realizados por cesárea. Además, ninguna de las madres presentaba hipertensión arterial, ni eran mayores a 40 años. Ningún recién nacido tuvo edad gestacional menor a 30 semanas. 
+Cluster 2: Todos los recién nacidos fueron de género femenino, todas las madres recibieron corticoides en el parto y fueron realizados por cesárea. Además, ninguna de las madres presentaba hipertensión arterial, ni eran mayores a 40 años. Ningún recién nacido tuvo edad gestacional menor a 30 semanas.
 
 Cluster 3: Todos los recién nacidos tuvieron edad gestacional menor a 30 semanas. Además, todos fueron de género masculino. Todas las madres recibieron corticoides y la mayoría tuvo cesarea. La mayoría de los recién nacidos pesaron mas de 1kg. Ninguna madre tenía más de 40 años al momento del parto, ni presentaba hipertensión arterial.
 
 Cluster 4: Ningun recién nacido tuvo edad gestacional menor a 30 semanas. La mayoría de las madres eran menores a 40 años. La mayoría de los recién nacidos eran de sexo masculino. Todos los partos fueron por cesárea, y la mayoría de las mujeres fueron administradas con corticoides. Además, la mayoría de los recién nacidos pesaron mas de 1kg.
 
-
 ## Relación entre la distribución de los nacimientos de los centros (‘A’, ‘B’ y ‘C’) y los distintos clusters
+
 ```{r}
+#| label: tabla2
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
 
 table(nacimientos$cluster, nacimientos$centro)
-#   A B C
-# 1 8 2 9
-# 2 8 1 0
-# 3 5 1 5
-# 4 9 1 2
 
 ```
-Para el cluster 1, se observa que la mayoría de los nacimientos fueron realizados en los centros A y C. 
-En el cluster 2, se observa que la mayoría de los nacimientos fueron realizados en el centro A.
-Para el cluster 3, se realizaron nacimientos en igual medida en centros A y C. 
-Por último, en el cluster 4, la mayoría de los nacimientos se realizaron en el centro A. 
-Se observa que el centro B es en el que se realizaron la menor cantidad de nacimientos. Y el cento A, en el que más hubo.
 
-## Relación entre la distribución de los nacimientos de los centros (‘A’, ‘B’ y ‘C’) y los distintos clusters
+Para el cluster 1, se observa que la mayoría de los nacimientos fueron realizados en los centros A y C. En el cluster 2, se observa que la mayoría de los nacimientos fueron realizados en el centro A. Para el cluster 3, se realizaron nacimientos en igual medida en centros A y C. Por último, en el cluster 4, la mayoría de los nacimientos se realizaron en el centro A. Se observa que el centro B es en el que se realizaron la menor cantidad de nacimientos. Y el cento A, en el que más hubo.
 
+## Agrupamiento jerárquico sobre variables binarias: Utilizando la distancia Sokal Mich
 
+```{r}
+#| label: dendograma
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+d2 <- dist.binary(df_to_cluster, method = 2)
+
+fit2 <- hclust(d2, method = "ward.D")
+
+plot(fit2)
+rect.hclust(fit2, k = 4, border = "blue")
+```
+
+Comparando este dendograma con el obtenido anteriormente, no se observan grandes diferencias. La altura de los cortes es muy similar, aunque se observa que no distribuyeron de la misma manera todas las observaciones, algunas cambiaron de cluster. Evidentemente, considerar las frecuencias de coincidencias 0-0 afecta la distribución de las observaciones en los clusters.
+
+```{r}
+#| label: comparacion
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+groups2 <- cutree(fit2, k = 4)
+df_to_cluster$cluster2 <- groups2 
+nacimientos$cluster2 <- groups2
+```
+
+Al observar la base de datos de nacimientos, con los nombres de los clusters, se puede ver que al utilizar los distintos métodos para el cálculo de las distancias, algunas observaciones que se encontraban en el cluster 1 cambiaron al cluster 3. El resto de las observaciones pertenecen a los mismos clusters. 
+
+```{r}
+#| label: tabla frec
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+# Tabla de frecuencias absolutas
+tabla_frecuencias <- table(groups)
+
+tabla_frecuencias2 <- table(groups2)
+# Convertir a proporciones
+tabla_proporciones <- prop.table(tabla_frecuencias)
+
+tabla_proporciones2 <- prop.table(tabla_frecuencias2)
+
+# Mostrar como data.frame con porcentajes
+tabla_final <- data.frame(
+  Cluster = names(tabla_proporciones),
+  Frecuencia = as.vector(tabla_frecuencias),
+  Proporcion = round(tabla_proporciones, 3),
+  Porcentaje = paste0(round(tabla_proporciones * 100, 1), "%")
+)
+
+print(tabla_final)
+
+tabla_final2 <- data.frame(
+  Cluster = names(tabla_proporciones2),
+  Frecuencia = as.vector(tabla_frecuencias2),
+  Proporcion = round(tabla_proporciones2, 3),
+  Porcentaje = paste0(round(tabla_proporciones2 * 100, 1), "%")
+)
+
+print(tabla_final2)
+```
+A través de estas tablas, se puede ver lo mencionado en el comentario anterior. Los clusters 2 y 4 no sufrieron grandes cambios, a diferencia de los clusters 1 y 3.
+
+```{r}
+#| label: sokal mich
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+
+#CON DISTANCIA SOKAL MICH
+
+# Agregar columna de clúster al dataframe
+df_con_grupo <- df_to_cluster
+df_con_grupo$cluster2 <- groups2
+
+# Calcular proporciones por variable dentro de cada clúster
+tabla_porcentajes2 <- aggregate(. ~ cluster2, data = df_con_grupo, FUN = mean)
+
+# Convertir a porcentaje
+tabla_porcentajes2[,-1] <- round(tabla_porcentajes2[,-1] * 100, 1)
+
+# Ver la tabla
+print(tabla_porcentajes2)
+```
+
+Cluster 1: Todos los recién nacidos tienen edad gestacional menor a 30 semanas. Un 46.20% de las mujeres eran mayores a 40 años. Todos los recién nacidos fueron de género femenino. Todos los partos fueron realizados por cesárea. Un 23.1%  de los recién nacidos pesaron menos de 1kg. Además, la mayoría de las madres recibieron corticoides y un 30.8% de ellas presentaban hipertensión arterial.
+
+Cluster 2: Todos los recién nacidos tienen edad gestacional mayor a 30 semanas. Ninguna de las madres eran mayores de 40 años. Todos los recién nacidos fueron de género femenino. Todos los partos fueron realizados por cesárea. Ninguno de los recién nacidos pesaron menos de 1kg. Además, todas las madres recibieron corticoides y ninguna de ellas presentaba hipertensión arterial.
+
+Cluster 3: Un 27.8% de los recién nacidos tienen edad gestacional menor a 30 semanas. Un 16.7% las madres eran mayores de 40 años. Un 77.8% de los recién nacidos fueron de género masculino. Todos los partos fueron realizados por cesárea. Un 5.6% de los recién nacidos pesaron menos de 1kg. Además, un 55.6% de las madres recibieron corticoides y el 38.9% de ellas presentaba hipertensión arterial.
+
+Cluster 4: Todos los recién nacidos tienen edad gestacional menor a 30 semanas. Ninguna de las madres eran mayores de 40 años. Todos los recién nacidos fueron de género masculino. Un 81.8% de los partos fueron realizados por cesárea. Un 18.2% de los recién nacidos pesaron menos de 1kg. Además, todas las madres recibieron corticoides y ninguna de ellas presentaba hipertensión arterial.
+
+```{r}
+#| label: tablaMichh
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+#SOKAL MICHH
+table(nacimientos$cluster2, nacimientos$centro)
+```
+
+En el cluster 1, la mayoría de los nacimientos fueron realizados en los centros A y C. 
+En el cluster 2, la mayoria de los nacimientos fueron realizados en el centro A, y no se realizaron nacimientos en el centro C.
+Para el cluster 3, la mayoria de los nacimientos fueron realizados en el centro A, seguido del centro C.
+Por último, en el cluster 4, se realizó la misma cantidad de nacimientos en los centros A y C.  
+Se observa que el centro B es en el centro que menos nacimientos se realizaron y el A es el centro en el que se realizaron más.
