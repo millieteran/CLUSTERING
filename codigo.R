@@ -8,7 +8,7 @@ library(readxl)
 library(janitor)
 library(proxy)
 
-install.packages("proxy")
+#install.packages("proxy")
 
 
 
@@ -95,7 +95,7 @@ df_to_cluster <- nacimientos %>%
 d   <- dist(df_to_cluster, method = "binary") #no considera 00
 #Otro cálculo de la distancia, es utilizando el método SM, SOCKAL & MICHENER s2
 
-install.packages("ade4")
+#install.packages("ade4")
 library(ade4)
 
 d2 <- dist.binary(df_to_cluster, method = 2)

@@ -286,7 +286,7 @@ df_to_cluster$cluster2 <- groups2
 nacimientos$cluster2 <- groups2
 ```
 
-Al observar la base de datos de nacimientos, con los nombres de los clusters, se puede ver que al utilizar los distintos métodos para el cálculo de las distancias, algunas observaciones que se encontraban en el cluster 1 cambiaron al cluster 3. El resto de las observaciones pertenecen a los mismos clusters. 
+Al observar la base de datos de nacimientos, con los nombres de los clusters, se puede ver que al utilizar los distintos métodos para el cálculo de las distancias, algunas observaciones que se encontraban en el cluster 1 cambiaron al cluster 3. El resto de las observaciones pertenecen a los mismos clusters.
 
 ```{r}
 #| label: tabla frec
@@ -322,6 +322,7 @@ tabla_final2 <- data.frame(
 
 print(tabla_final2)
 ```
+
 A través de estas tablas, se puede ver lo mencionado en el comentario anterior. Los clusters 2 y 4 no sufrieron grandes cambios, a diferencia de los clusters 1 y 3.
 
 ```{r}
@@ -347,7 +348,7 @@ tabla_porcentajes2[,-1] <- round(tabla_porcentajes2[,-1] * 100, 1)
 print(tabla_porcentajes2)
 ```
 
-Cluster 1: Todos los recién nacidos tienen edad gestacional menor a 30 semanas. Un 46.20% de las mujeres eran mayores a 40 años. Todos los recién nacidos fueron de género femenino. Todos los partos fueron realizados por cesárea. Un 23.1%  de los recién nacidos pesaron menos de 1kg. Además, la mayoría de las madres recibieron corticoides y un 30.8% de ellas presentaban hipertensión arterial.
+Cluster 1: Todos los recién nacidos tienen edad gestacional menor a 30 semanas. Un 46.20% de las mujeres eran mayores a 40 años. Todos los recién nacidos fueron de género femenino. Todos los partos fueron realizados por cesárea. Un 23.1% de los recién nacidos pesaron menos de 1kg. Además, la mayoría de las madres recibieron corticoides y un 30.8% de ellas presentaban hipertensión arterial.
 
 Cluster 2: Todos los recién nacidos tienen edad gestacional mayor a 30 semanas. Ninguna de las madres eran mayores de 40 años. Todos los recién nacidos fueron de género femenino. Todos los partos fueron realizados por cesárea. Ninguno de los recién nacidos pesaron menos de 1kg. Además, todas las madres recibieron corticoides y ninguna de ellas presentaba hipertensión arterial.
 
@@ -365,8 +366,5 @@ Cluster 4: Todos los recién nacidos tienen edad gestacional menor a 30 semanas.
 table(nacimientos$cluster2, nacimientos$centro)
 ```
 
-En el cluster 1, la mayoría de los nacimientos fueron realizados en los centros A y C. 
-En el cluster 2, la mayoria de los nacimientos fueron realizados en el centro A, y no se realizaron nacimientos en el centro C.
-Para el cluster 3, la mayoria de los nacimientos fueron realizados en el centro A, seguido del centro C.
-Por último, en el cluster 4, se realizó la misma cantidad de nacimientos en los centros A y C.  
+En el cluster 1, la mayoría de los nacimientos fueron realizados en los centros A y C. En el cluster 2, la mayoria de los nacimientos fueron realizados en el centro A, y no se realizaron nacimientos en el centro C. Para el cluster 3, la mayoria de los nacimientos fueron realizados en el centro A, seguido del centro C. Por último, en el cluster 4, se realizó la misma cantidad de nacimientos en los centros A y C.\
 Se observa que el centro B es en el centro que menos nacimientos se realizaron y el A es el centro en el que se realizaron más.
